@@ -1,0 +1,177 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#635bff">
+  <title>TaskFlow — Your Personal Task Manager</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="#">
+        <span class="brand-icon">✓</span>
+        <span>TaskFlow</span>
+      </a>
+
+      <button id="theme-toggle" class="theme-toggle" type="button">
+        🌙 Dark mode
+      </button>
+
+      <div class="sidebar-label">WORKSPACE</div>
+      <nav class="filters" aria-label="Task filters">
+        <button class="filter active" data-filter="all">📋 All tasks <span id="nav-all">0</span></button>
+        <button class="filter" data-filter="active">⏳ Active <span id="nav-active">0</span></button>
+        <button class="filter" data-filter="completed">✅ Completed <span id="nav-completed">0</span></button>
+        <button class="filter" data-filter="today">📅 Due today <span id="nav-today">0</span></button>
+      </nav>
+
+      <div class="sidebar-label">YOUR ACCOUNT</div>
+      <div id="auth-panel" class="auth-panel">
+        <p id="auth-status">Connect to sync your tasks to the cloud.</p>
+        <form id="auth-form">
+          <label for="email">Email address</label>
+          <input id="email" type="email" placeholder="you@example.com" required>
+          <label for="password">Password</label>
+          <input id="password" type="password" placeholder="At least 6 characters" minlength="6" required>
+          <button class="primary-button full-width" id="login-button" type="submit">Sign in</button>
+          <button class="text-button full-width" id="signup-button" type="button">Create account</button>
+          <button class="text-button full-width" id="logout-button" type="button" hidden>Sign out</button>
+        </form>
+      </div>
+
+      <div class="sidebar-bottom">
+        <button id="export-button" class="secondary-button full-width" type="button">↓ Export backup</button>
+        <label class="secondary-button full-width import-label">
+          ↑ Import backup
+          <input id="import-file" type="file" accept=".json,application/json" hidden>
+        </label>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow" id="today-label">YOUR WORKSPACE</p>
+          <h1 id="page-title">All tasks</h1>
+          <p class="muted">Plan your day. Focus on what matters.</p>
+        </div>
+        <div class="user-badge" id="user-badge">TF</div>
+      </header>
+
+      <section class="stats-grid" aria-label="Task statistics">
+        <article class="stat-card">
+          <span class="stat-icon purple">☷</span>
+          <p>Total tasks</p>
+          <strong id="stat-total">0</strong>
+          <span class="stat-foot">All your tasks</span>
+        </article>
+        <article class="stat-card">
+          <span class="stat-icon orange">◷</span>
+          <p>In progress</p>
+          <strong id="stat-active">0</strong>
+          <span class="stat-foot">Still to do</span>
+        </article>
+        <article class="stat-card">
+          <span class="stat-icon green">✓</span>
+          <p>Completed</p>
+          <strong id="stat-completed">0</strong>
+          <span class="stat-foot" id="completion-rate">0% completion</span>
+        </article>
+        <article class="stat-card">
+          <span class="stat-icon red">!</span>
+          <p>Overdue</p>
+          <strong id="stat-overdue">0</strong>
+          <span class="stat-foot">Past due date</span>
+        </article>
+      </section>
+
+      <section class="task-panel">
+        <div class="panel-heading">
+          <div>
+            <h2>My tasks</h2>
+            <p class="muted">Add, organise and complete your tasks.</p>
+          </div>
+          <button id="clear-completed" class="text-button" type="button">Clear completed</button>
+        </div>
+
+        <form id="task-form" class="task-form">
+          <label class="sr-only" for="task-title">Task title</label>
+          <input id="task-title" type="text" maxlength="200" placeholder="What needs to get done?" required>
+          <button class="primary-button" type="submit">+ Add task</button>
+
+          <div class="form-options">
+            <div>
+              <label for="task-category">Category</label>
+              <select id="task-category">
+                <option>Personal</option>
+                <option>Work</option>
+                <option>Study</option>
+                <option>Health</option>
+                <option>Shopping</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div>
+              <label for="task-priority">Priority</label>
+              <select id="task-priority">
+                <option value="low">Low</option>
+                <option value="medium" selected>Medium</option>
+                <option value="high">High</option>
+              </select>
+            </div>
+            <div>
+              <label for="task-due-date">Due date</label>
+              <input id="task-due-date" type="date">
+            </div>
+          </div>
+          <div>
+            <label for="task-notes">Notes (optional)</label>
+            <textarea id="task-notes" rows="2" maxlength="3000" placeholder="Add details or a reminder..."></textarea>
+          </div>
+        </form>
+
+        <div class="task-toolbar">
+          <label class="search-box">
+            <span>⌕</span>
+            <input id="task-search" type="search" placeholder="Search tasks..." aria-label="Search tasks">
+          </label>
+          <label class="category-filter">
+            <span class="sr-only">Filter by category</span>
+            <select id="category-filter">
+              <option value="all">All categories</option>
+              <option>Personal</option>
+              <option>Work</option>
+              <option>Study</option>
+              <option>Health</option>
+              <option>Shopping</option>
+              <option>Other</option>
+            </select>
+          </label>
+        </div>
+
+        <div id="task-list" class="task-list" aria-live="polite"></div>
+        <div id="empty-state" class="empty-state">
+          <span class="empty-icon">✦</span>
+          <h3>No tasks yet</h3>
+          <p>Add your first task above and make today count.</p>
+        </div>
+        <div class="list-footer">
+          <span id="task-count">0 tasks</span>
+          <button id="undo-delete" class="secondary-button" type="button" hidden>↶ Undo delete</button>
+        </div>
+      </section>
+
+      <footer class="app-footer">
+        <span>TaskFlow · Stay organised, one task at a time.</span>
+        <span id="sync-status">Local mode</span>
+      </footer>
+    </main>
+  </div>
+</body>
+</html>
